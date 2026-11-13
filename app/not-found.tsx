@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function NotFound() { return <main id="main" className="shell page-main"><span className="eyebrow">404 · OFF THE MAP</span><h1 className="page-title">No build here. Yet.</h1><p className="page-intro">This project or page doesn’t exist. There’s plenty more to explore.</p><Link className="button primary" href="/projects">Explore projects ↗</Link></main>; }

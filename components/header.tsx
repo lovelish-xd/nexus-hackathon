@@ -1,0 +1,5 @@
+import Link from 'next/link';
+import { currentAccount } from '../lib/auth';
+import { AccountMenu } from './account-menu';
+export async function Header() { const account=await currentAccount(); return <header className="site-header"><Link href="/" className="brand" aria-label="Nexus home"><span className="brand-mark">N</span>NEXUS<span className="brand-caption">GAMING<br/>HACKATHON</span></Link><nav aria-label="Main navigation"><Link href="/#about">The event</Link><Link href="/projects">Projects</Link><Link href="/winners">Winners</Link><Link href="/seasons">Seasons</Link></nav><div className="account-nav">{account ? <AccountMenu name={account.name} email={account.email}/> : <><Link href="/sign-in">Sign in</Link><Link href="/sign-up" className="button primary">Sign up ↗</Link></>}</div></header>; }
+export function Footer() { return <footer className="site-footer"><Link href="/" className="brand"><span className="brand-mark">N</span>NEXUS</Link><p>A new season. Every year. For the love of the game.</p><Link href="/seasons">Explore the seasons ↗</Link><span>SEASON 2026</span></footer>; }

@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "project": {
+    "name": "hackathon",
+    "productType": "Private gaming hackathon showcase",
+    "stack": [
+      "Next.js App Router",
+      "React",
+      "TypeScript",
+      "CSS"
+    ]
+  },
+  "sources": {
+    "tokens": [],
+    "components": [],
+    "assets": [],
+    "instructions": []
+  },
+  "design": {
+    "colorMode": "dark",
+    "colors": {
+      "background": "#101210",
+      "panel": "#1a1e19",
+      "text": "#f0f1e9",
+      "muted": "#a4ad9c",
+      "accent": "#d0f872",
+      "secondary": "#c3a8e5"
+    },
+    "typography": {},
+    "spacing": {},
+    "radius": {},
+    "shadows": {},
+    "motion": {},
+    "density": "unknown"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [],
+    "avoid": []
+  },
+  "decisions": [
+    "Preserve the requested charcoal and lime identity.",
+    "Use server-rendered routes; isolate search and browser profile editing in client components.",
+    "Homepage hero uses centered sentence-case typography, a restrained season label, generous space, and one primary action. Remove the large year panel and bright ticker.",
+    "Hero imagery depicts developers collaboratively creating games in a premium studio, with no esports tournament imagery."
+  ],
+  "evidence": [],
+  "generatedAt": "2026-11-12T15:10:49.849Z"
+}

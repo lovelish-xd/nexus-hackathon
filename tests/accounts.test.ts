@@ -1,0 +1,11 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+const folder=mkdtempSync(join(tmpdir(),'nexus-accounts-')); process.env.NEXUS_DB_PATH=join(folder,'test.sqlite');
+const { db, createAccount, passwordHash, verifyPassword, createSession, accountForSession, revokeSession, allowAttempt }=await import('../lib/accounts.ts');
+after(()=>{db().close();rmSync(folder,{recursive:true,force:true});});
+test('passwords are salted hashes and incorrect passwords fail',()=>{const a=passwordHash('a-long-password'); const b=passwordHash('a-long-password'); assert.notEqual(a,b);assert.ok(verifyPassword('a-long-password',a));assert.ok(!verifyPassword('incorrect-password',a));});
+test('sessions isolate users, expire, revoke, and never expose password hashes',()=>{const a=createAccount('a@example.com','a-long-password','A',true);const b=createAccount('b@example.com','another-password','B');const ta=createSession(a),tb=createSession(b);assert.equal(accountForSession(ta)?.id,a);assert.equal(accountForSession(tb)?.owner,0);assert.ok(!('password' in accountForSession(ta)!));assert.equal(accountForSession('forged'),null);revokeSession(ta);assert.equal(accountForSession(ta),null);db().prepare('UPDATE sessions SET expires=0').run();assert.equal(accountForSession(tb),null);assert.throws(()=>createAccount('A@example.com','a-long-password','duplicate'));});
+test('invalid account inputs and excessive attempts are rejected',()=>{assert.throws(()=>createAccount('invalid','short',''));for(let i=0;i<8;i++)assert.ok(allowAttempt('test'));assert.equal(allowAttempt('test'),false);});

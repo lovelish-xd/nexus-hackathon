@@ -1,0 +1,6 @@
+'use client';
+import Link from 'next/link';
+import { signOut } from '../app/auth-actions';
+export function AccountMenu({name,email}:{name:string;email:string}) {
+ return <div className="account-controls"><Link href="/submit" className="button primary account-submit">Submit project</Link><button className="account-trigger" popoverTarget="account-menu" aria-label={`Open account menu for ${name}`}><span className="account-avatar" aria-hidden="true">{name.charAt(0).toUpperCase()}</span><span className="account-trigger-name">{name}</span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><path d="m3 4.5 3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5"/></svg></button><div id="account-menu" popover="auto" className="account-popover" onClick={event=>{if((event.target as HTMLElement).closest('a'))event.currentTarget.hidePopover();}}><div className="account-identity"><strong>{name}</strong><span>{email}</span></div><nav aria-label="Account navigation"><Link href="/dashboard">My projects <span aria-hidden="true">↗</span></Link><Link href="/claims">Prizes & delivery <span aria-hidden="true">↗</span></Link><Link href="/profile">Profile settings <span aria-hidden="true">↗</span></Link></nav><form action={signOut}><button type="submit">Sign out</button></form></div></div>;
+}

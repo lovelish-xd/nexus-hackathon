@@ -1,0 +1,17 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync,rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+const folder=mkdtempSync(join(tmpdir(),'nexus-participation-'));process.env.NEXUS_DB_PATH=join(folder,'test.sqlite');
+const {db,createAccount}=await import('../lib/accounts.ts');
+const {saveSubmission,mySubmissions,ownedSubmission,requestPrize,myClaim,eligibleWinner}=await import('../lib/participation.ts');
+after(()=>{db().close();rmSync(folder,{recursive:true,force:true});});
+const a=createAccount('builder@example.com','a-long-password','Builder'),b=createAccount('other@example.com','a-long-password','Other');
+const data={title:'A game project',description:'A cooperative game prototype with accessible controls and a playable world.',category:'Games',url:'https://example.com/game',repository:''};
+let id:number;
+test('draft to submitted lifecycle persists edits without duplicating the project',()=>{id=saveSubmission(a,null,{...data,url:''},false);assert.equal(mySubmissions(a)[0].status,'draft');assert.throws(()=>saveSubmission(a,id,{...data,url:''},true),/link/);assert.equal(saveSubmission(a,id,data,true),id);assert.equal(mySubmissions(a).length,1);assert.equal(ownedSubmission(a,id)?.status,'submitted');saveSubmission(a,id,{...data,title:'Updated build'},false);assert.equal(ownedSubmission(a,id)?.status,'submitted');assert.equal(ownedSubmission(a,id)?.title,'Updated build');});
+test('accounts cannot read or overwrite another account submission or award themselves a prize',()=>{assert.equal(ownedSubmission(b,id),null);assert.throws(()=>saveSubmission(b,id,data,true),/not found/);const own=saveSubmission(b,null,{...data,winner:1,status:'submitted'},true);assert.equal(ownedSubmission(b,own)?.winner,0);assert.equal(eligibleWinner(b),null);assert.throws(()=>requestPrize(b,{}),/eligible/);assert.equal(myClaim(b),null);});
+test('submission trust boundaries reject script URLs, invalid categories and underspecified descriptions',()=>{assert.throws(()=>saveSubmission(a,null,{...data,url:'javascript:alert(1)'},true),/http/);assert.throws(()=>saveSubmission(a,null,{...data,category:'Anything'},true),/category/);assert.throws(()=>saveSubmission(a,null,{...data,description:'short'},true),/description/);});
+const address={recipient:'Test Recipient',phone:'+1 202 555 0100',line1:'123 Example Street',line2:'',city:'Example City',region:'Example State',postal:'12345',country:'Example Country',consent:'on'};
+test('winner claims require complete consented delivery details and remain account private',()=>{db().prepare('UPDATE submissions SET winner=1 WHERE id=?').run(id);assert.ok(eligibleWinner(a));assert.throws(()=>requestPrize(a,{...address,city:''}),/required/);assert.throws(()=>requestPrize(a,{...address,consent:''}),/Confirm/);assert.throws(()=>requestPrize(a,{...address,phone:'bad'}),/phone/);requestPrize(a,address);assert.equal(myClaim(a)?.status,'requested');assert.equal(myClaim(a)?.recipient,address.recipient);assert.equal(myClaim(b),null);requestPrize(a,{...address,line1:'456 Example Street'});assert.equal(myClaim(a)?.line1,'456 Example Street');assert.equal(db().prepare('SELECT count(*) AS n FROM prize_claims').get()?.n,1);});
